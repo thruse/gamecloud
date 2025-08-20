@@ -17,7 +17,7 @@ if len(sys.argv) == 3 and sys.argv[1] in commands and sys.argv[2] in schemas:
         
         schema = [line.strip() for line in schema_lines]
         for line in schema[1:]:
-            print("\""+line+"\"")
+            print(os.path.expandvars(line))
     elif command == "pull":
         print("pulling")
 else:
