@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import shutil
 import os
 import sys
 
@@ -16,8 +15,16 @@ if len(sys.argv) == 3 and sys.argv[1] in commands and sys.argv[2] in schemas:
             schema_lines = f.readlines()
         
         schema = [line.strip() for line in schema_lines]
-        for line in schema[1:]:
-            print(os.path.expandvars(line))
+        if sys.platform == "win32":
+            save_dir = os.path.expandvars(schema[1])
+        elif sys.platform == "darwin":
+            save_dir = os.path.expandvars(schema[2])
+        elif sys.platform == "linux":
+            save_dir = os.path.expandvars(schema[3])
+        
+        save_file_paths = [os.path.join(save_dir, file_name) for file_name in schema[4:]]
+        for path in save_file_paths:
+            print(path, "is the path to a save file and it is", os.path.exists(path), "that the file exists")
     elif command == "pull":
         print("pulling")
 else:
