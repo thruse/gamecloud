@@ -19,17 +19,17 @@ Local save dirname: the path to a directory containing a local save file.
 Save pattern: a glob pattern expressing the form of a save name.
 """
 
-def dir_exists(dbx, folder):
+def dir_exists(dbx, dir):
     try:
-        result = isinstance(dbx.files_get_metadata(folder), dropbox.files.FolderMetadata)
+        result = isinstance(dbx.files_get_metadata(dir), dropbox.files.FolderMetadata)
     except dropbox.exceptions.ApiError:
         result = False
 
     return result
 
-def create_dir(dbx: dropbox.Dropbox, folder):
-    if not dir_exists(dbx, folder):
-        dbx.files_create_folder_v2(folder)
+def create_dir(dbx: dropbox.Dropbox, dir):
+    if not dir_exists(dbx, dir):
+        dbx.files_create_folder_v2(dir)
 
 def file_exists(dbx: dropbox.Dropbox, file):
     try:
@@ -39,31 +39,27 @@ def file_exists(dbx: dropbox.Dropbox, file):
         
     return result
 
-def get_schema_lines(schema):
+def get_game_info(schema):
     schema_lines = []
     with open(schema) as f:
         schema_lines = [line.strip() for line in f]
     assert(len(schema_lines) > 4)
-    return schema_lines
 
-def get_local_save_dir(schema):
-    schema_lines = get_schema_lines(schema)
+    local_save_dir = ""
     if sys.platform == "win32":
         local_save_dir = os.path.expandvars(schema_lines[1])
     elif sys.platform == "darwin":
         local_save_dir = os.path.expandvars(schema_lines[2])
     elif sys.platform == "linux":
         local_save_dir = os.path.expandvars(schema_lines[3])
-    
-    return local_save_dir
 
-def get_save_patterns(schema):
-    return get_schema_lines(schema)[4:]
+    game_info = {
+        "local_save_dir": local_save_dir,
+        "save_patterns": schema_lines[4:]
+    }
+    return game_info
 
-def get_save_names(schema, save_dir):
-    save_dir = get_local_save_dir(schema)
-    save_patterns = get_save_patterns(schema)
-
+def get_save_names(save_patterns, save_dir):
     save_names = []
     for save_pattern in save_patterns:
         save_names.extend(glob.glob(os.path.normpath(save_pattern), root_dir=save_dir))
@@ -80,12 +76,23 @@ def download(dbx: dropbox.Dropbox, src, dst):
         with open(dst, "wb") as f:
             f.write(res.content)
 
-def copy_saves(schema, src_save_dir, dst_save_dir):
-    src_save_names = get_save_names(schema, src_save_dir)
+def os_replace_dir(dir):
+    if os.path.isdir(dir):
+        shutil.rmtree(dir)
+    os.makedirs(dir)
+
+def os_copy(src, dst):
+    if os.path.isdir(src):
+        shutil.copytree(src, dst)
+    elif os.path.isfile(src):
+        shutil.copyfile(src, dst)
+
+def copy_saves(save_patterns, src_save_dir, dst_save_dir):
+    src_save_names = get_save_names(save_patterns, src_save_dir)
     for src_save_name in src_save_names:
         dst_save = os.path.join(dst_save_dir, src_save_name)
         os.makedirs(os.path.dirname(dst_save), exist_ok=True)
-        shutil.copyfile(os.path.join(src_save_dir, src_save_name), dst_save)
+        os_copy(os.path.join(src_save_dir, src_save_name), dst_save)
 
 dbx = dropbox.Dropbox(app_key=os.environ["GAMECLOUD_KEY"], app_secret=os.environ["GAMECLOUD_SECRET"], oauth2_refresh_token=os.environ["GAMECLOUD_TOKEN"])
 
@@ -105,30 +112,34 @@ if len(sys.argv) == 3 and sys.argv[1] in commands and sys.argv[2] in games:
     cloud_save_zip = '/'.join([cloud_saves_dir, game+".zip"])
 
     schema = os.path.join(schemas_dir, game)
-    local_save_dir = get_local_save_dir(schema)
+    game_info = get_game_info(schema)
 
-    tmp_save_dir = os.path.join(os.environ["MYDIR"], "tmp", "gamecloud", command, game)
-    if os.path.isdir(tmp_save_dir):
-        shutil.rmtree(tmp_save_dir)
+    tmp_save_dir = os.path.join(os.path.dirname(__file__), "tmp", command, game)
+
     for match in glob.glob(tmp_save_dir+"*"):
         if os.path.isfile(match):
             os.remove(match)
 
-    os.makedirs(tmp_save_dir)
+    os_replace_dir(tmp_save_dir)
 
     tmp_save_zip = tmp_save_dir+".zip"
     
     if command == "upload":
-        copy_saves(schema, local_save_dir, tmp_save_dir)
-        
+        copy_saves(game_info["save_patterns"], game_info["local_save_dir"], tmp_save_dir)
+
         shutil.make_archive(tmp_save_dir, "zip", tmp_save_dir)
         upload(dbx, tmp_save_zip, cloud_save_zip)
 
     if command == "download":
+        old_local_save_dir = os.path.join(os.path.dirname(__file__), "tmp", "old", game)
+        os_replace_dir(old_local_save_dir)
+
+        copy_saves(game_info["save_patterns"], game_info["local_save_dir"], old_local_save_dir)
+
         download(dbx, cloud_save_zip, tmp_save_zip)
         shutil.unpack_archive(tmp_save_zip, tmp_save_dir)
 
-        copy_saves(schema, tmp_save_dir, local_save_dir)
+        copy_saves(game_info["save_patterns"], tmp_save_dir, game_info["local_save_dir"])
 else:
     print("error: incorrect syntax", file=sys.stderr)
 
