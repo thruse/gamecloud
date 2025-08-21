@@ -114,6 +114,8 @@ if len(sys.argv) == 3 and sys.argv[1] in commands and sys.argv[2] in games:
         if os.path.isfile(match):
             os.remove(match)
 
+    os.makedirs(tmp_save_dir)
+
     tmp_save_zip = tmp_save_dir+".zip"
     
     if command == "upload":
