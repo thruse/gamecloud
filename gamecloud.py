@@ -62,7 +62,10 @@ def get_game_info(schema):
 def get_save_names(save_patterns, save_dir):
     save_names = []
     for save_pattern in save_patterns:
-        save_names.extend(glob.glob(os.path.normpath(save_pattern), root_dir=save_dir))
+        matches = glob.glob(os.path.normpath(save_pattern), root_dir=save_dir, recursive=True)
+        for save_name in matches:
+            if os.path.isfile(os.path.join(save_dir, save_name)):
+                save_names.append(save_names)
 
     return save_names
 
