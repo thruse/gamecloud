@@ -38,7 +38,7 @@ gamecloud [command] [game]
 ```
 Currently available commands are `upload` and `download`.
 
-Currently available games are `undertale`.
+Currently available games are `undertale` and `terraria`.
 
 ## Schema format
 
