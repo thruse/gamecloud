@@ -99,9 +99,6 @@ create_dir(dbx, cloud_saves_dir)
 schemas_dir = os.path.join(os.path.dirname(__file__), "schemas")
 games = os.listdir(schemas_dir)
 
-for game in games:
-    create_dir(dbx, '/'.join([cloud_saves_dir, game]))
-
 commands = ["upload", "download"]
 if len(sys.argv) == 3 and sys.argv[1] in commands and sys.argv[2] in games:
     command = sys.argv[1]
