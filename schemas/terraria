@@ -2,5 +2,5 @@ terraria
 %USERPROFILE%\Documents\My Games\Terraria
 $HOME/Library/Application Support/Terraria
 $HOME/.local/share/Terraria
-Players
-Worlds
+Players/**
+Worlds/**

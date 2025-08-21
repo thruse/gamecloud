@@ -65,7 +65,7 @@ def get_save_names(save_patterns, save_dir):
         matches = glob.glob(os.path.normpath(save_pattern), root_dir=save_dir, recursive=True)
         for save_name in matches:
             if os.path.isfile(os.path.join(save_dir, save_name)):
-                save_names.append(save_names)
+                save_names.append(save_name)
 
     return save_names
 
@@ -84,18 +84,12 @@ def os_replace_dir(dir):
         shutil.rmtree(dir)
     os.makedirs(dir)
 
-def os_copy(src, dst):
-    if os.path.isdir(src):
-        shutil.copytree(src, dst)
-    elif os.path.isfile(src):
-        shutil.copyfile(src, dst)
-
 def copy_saves(save_patterns, src_save_dir, dst_save_dir):
     src_save_names = get_save_names(save_patterns, src_save_dir)
     for src_save_name in src_save_names:
         dst_save = os.path.join(dst_save_dir, src_save_name)
         os.makedirs(os.path.dirname(dst_save), exist_ok=True)
-        os_copy(os.path.join(src_save_dir, src_save_name), dst_save)
+        shutil.copyfile(os.path.join(src_save_dir, src_save_name), dst_save)
 
 dbx = dropbox.Dropbox(app_key=os.environ["GAMECLOUD_KEY"], app_secret=os.environ["GAMECLOUD_SECRET"], oauth2_refresh_token=os.environ["GAMECLOUD_TOKEN"])
 
