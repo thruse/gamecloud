@@ -10,7 +10,7 @@ import glob
 Defintions
 Cloud save: a save file's path in the cloud.
 Local save: a local save file's path.
-Schema: the file name of a file that describes a game's local saves.
+Manifest: the file name of a file that describes a game's local saves.
 Save name: the largest subpath of a cloud save that is the same as a subpath of a local save.
 Cloud save dir: a cloud save, minus the save name.
 Local save dir: a local save, minus the save name.
@@ -39,23 +39,23 @@ def file_exists(dbx: dropbox.Dropbox, file):
         
     return result
 
-def get_game_info(schema):
-    schema_lines = []
-    with open(schema) as f:
-        schema_lines = [line.strip() for line in f]
-    assert(len(schema_lines) > 4)
+def get_game_info(manifest):
+    manifest_lines = []
+    with open(manifest) as f:
+        manifest_lines = [line.strip() for line in f]
+    assert(len(manifest_lines) > 4)
 
     local_save_dir = ""
     if sys.platform == "win32":
-        local_save_dir = os.path.expandvars(schema_lines[1])
+        local_save_dir = os.path.expandvars(manifest_lines[1])
     elif sys.platform == "darwin":
-        local_save_dir = os.path.expandvars(schema_lines[2])
+        local_save_dir = os.path.expandvars(manifest_lines[2])
     elif sys.platform == "linux":
-        local_save_dir = os.path.expandvars(schema_lines[3])
+        local_save_dir = os.path.expandvars(manifest_lines[3])
 
     game_info = {
         "local_save_dir": local_save_dir,
-        "save_patterns": schema_lines[4:]
+        "save_patterns": manifest_lines[4:]
     }
     return game_info
 
@@ -96,8 +96,8 @@ dbx = dropbox.Dropbox(app_key=os.environ["GAMECLOUD_KEY"], app_secret=os.environ
 cloud_saves_dir = "/saves"
 create_dir(dbx, cloud_saves_dir)
 
-schemas_dir = os.path.join(os.path.dirname(__file__), "schemas")
-games = os.listdir(schemas_dir)
+manifests_dir = os.path.join(os.path.dirname(__file__), "manifests")
+games = os.listdir(manifests_dir)
 
 commands = ["upload", "download"]
 if len(sys.argv) == 3 and sys.argv[1] in commands and sys.argv[2] in games:
@@ -105,8 +105,8 @@ if len(sys.argv) == 3 and sys.argv[1] in commands and sys.argv[2] in games:
     game = sys.argv[2]
     cloud_save_zip = '/'.join([cloud_saves_dir, game+".zip"])
 
-    schema = os.path.join(schemas_dir, game)
-    game_info = get_game_info(schema)
+    manifest = os.path.join(manifests_dir, game)
+    game_info = get_game_info(manifest)
 
     tmp_save_dir = os.path.join(os.path.dirname(__file__), "tmp", command, game)
 
