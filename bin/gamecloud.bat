@@ -1,9 +1,10 @@
 @echo off
 
-set GAMECLOUD_PATH=%~f0
-for %%i in ("%GAMECLOUD_PATH%") do set GAMECLOUD_PATH=%%~dpi
-set GAMECLOUD_PATH=%GAMECLOUD_PATH:~0,-1%\gamecloud.py
+set gamecloud_py=%~f0
+for %%i in ("%gamecloud_py%") set gamecloud_py=%%~dpi
+set gamecloud_py=%gamecloud_py:~0,-1%\..\gamecloud.py
+for %%i in ("%gamecloud_py%") set gamecloud_py=%%~fi
 
-call python %GAMECLOUD_PATH% %*
+call python %gamecloud_py% %*
 
-set GAMECLOUD_PATH=
+set gamecloud_py=
