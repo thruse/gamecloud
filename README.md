@@ -8,11 +8,11 @@ Save game progress to the cloud.
 
 2. Set the permissions `files.metadata.write`, `files.metadata.read`, `files.content.write`, `files.content.read`.
 
-3. Ensure the shell environment variables `GAMECLOUD_KEY` and `GAMECLOUD_SECRET` are set to the app key and secret respectively.
+3. Ensure you know the app key and secret, which from now on I will refer to as `GAMECLOUD_KEY` and `GAMECLOUD_SECRET` respectively.
 
-4. In a web browser go to `https://www.dropbox.com/oauth2/authorize?client_id=<APP_KEY>&token_access_type=offline&response_type=code`, where `APP_KEY` is the actual value of the app key, and copy the `ACCESS_CODE` you receive from this process.
+4. In a web browser go to `https://www.dropbox.com/oauth2/authorize?client_id=APP_KEY&token_access_type=offline&response_type=code`, where `APP_KEY` is the actual value of the app key, and copy the `ACCESS_CODE` you receive from this process.
 
-5. Ensure the packages in `requirements.txt` are installed and that `python` is callable from the command line.
+5. Ensure the `dropbox` and `requests` packages are installed and that `python` is callable from the command line.
 
 6. Run the following Python code.
     ```python
@@ -23,11 +23,11 @@ Save game progress to the cloud.
 
     response = requests.post("https://api.dropboxapi.com/oauth2/token",
                             data=f"code=ACCESS_CODE&grant_type=authorization_code",
-                            auth=(os.environ["GAMECLOUD_KEY"], os.environ["GAMECLOUD_SECRET"]))
+                            auth=(GAMECLOUD_KEY, GAMECLOUD_SECRET))
 
     print(json.dump(json.loads(response.text), indent=4))
     ```
-    where `ACCESS_CODE` is the access code above. Save the refresh token given in the JSON output to the shell environment variable `GAMECLOUD_TOKEN`. For more information on steps 4 to 6, see [this StackOverflow question](https://stackoverflow.com/questions/70641660/how-do-you-get-and-use-a-refresh-token-for-the-dropbox-api-python-3-x).
+    where `ACCESS_CODE` is the access code above. Save the refresh token given in the JSON output securely (this is private information). From now on I will refer to the refresh token as `GAMECLOUD_TOKEN`. For more information on steps 4 to 6, see [this StackOverflow question](https://stackoverflow.com/questions/70641660/how-do-you-get-and-use-a-refresh-token-for-the-dropbox-api-python-3-x).
 
 7. Add the `bin` directory to your `PATH`.
 
@@ -36,6 +36,11 @@ Save game progress to the cloud.
 ```
 gamecloud [command] [game]
 ```
+
+- Enter `GAMECLOUD_KEY`
+- Enter `GAMECLOUD_SECRET`
+- Enter `GAMECLOUD_TOKEN`
+
 Currently available commands are `upload` and `download`.
 
 Currently available games are `undertale` and `terraria`.

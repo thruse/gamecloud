@@ -5,6 +5,7 @@ import os
 import sys
 import shutil
 import glob
+import getpass
 
 """
 Defintions
@@ -91,7 +92,11 @@ def copy_saves(save_patterns, src_save_dir, dst_save_dir):
         os.makedirs(os.path.dirname(dst_save), exist_ok=True)
         shutil.copyfile(os.path.join(src_save_dir, src_save_name), dst_save)
 
-dbx = dropbox.Dropbox(app_key=os.environ["GAMECLOUD_KEY"], app_secret=os.environ["GAMECLOUD_SECRET"], oauth2_refresh_token=os.environ["GAMECLOUD_TOKEN"])
+GAMECLOUD_KEY = getpass.getpass("Enter gamecloud key: ")
+GAMECLOUD_SECRET = getpass.getpass("Enter gamecloud secret: ")
+GAMECLOUD_TOKEN = getpass.getpass("Enter gamecloud token: ")
+
+dbx = dropbox.Dropbox(app_key=GAMECLOUD_KEY, app_secret=GAMECLOUD_SECRET, oauth2_refresh_token=GAMECLOUD_TOKEN)
 
 cloud_saves_dir = "/saves"
 create_dir(dbx, cloud_saves_dir)
@@ -100,6 +105,7 @@ manifests_dir = os.path.join(os.path.dirname(__file__), "manifests")
 games = os.listdir(manifests_dir)
 
 commands = ["upload", "download"]
+
 if len(sys.argv) == 3 and sys.argv[1] in commands and sys.argv[2] in games:
     command = sys.argv[1]
     game = sys.argv[2]
@@ -127,7 +133,6 @@ if len(sys.argv) == 3 and sys.argv[1] in commands and sys.argv[2] in games:
     if command == "download":
         old_local_save_dir = os.path.join(os.path.dirname(__file__), "tmp", "old", game)
         os_replace_dir(old_local_save_dir)
-
         copy_saves(game_info["save_patterns"], game_info["local_save_dir"], old_local_save_dir)
 
         download(dbx, cloud_save_zip, tmp_save_zip)
