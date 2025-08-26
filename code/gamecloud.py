@@ -101,7 +101,8 @@ dbx = dropbox.Dropbox(app_key=GAMECLOUD_KEY, app_secret=GAMECLOUD_SECRET, oauth2
 cloud_saves_dir = "/saves"
 create_dir(dbx, cloud_saves_dir)
 
-manifests_dir = os.path.join(os.path.dirname(__file__), "manifests")
+gamecloud_dir = os.path.dirname(os.path.dirname(__file__))
+manifests_dir = os.path.join(gamecloud_dir, "manifests")
 games = os.listdir(manifests_dir)
 
 commands = ["upload", "download"]
@@ -114,7 +115,7 @@ if len(sys.argv) == 3 and sys.argv[1] in commands and sys.argv[2] in games:
     manifest = os.path.join(manifests_dir, game)
     game_info = get_game_info(manifest)
 
-    tmp_save_dir = os.path.join(os.path.dirname(__file__), "tmp", command, game)
+    tmp_save_dir = os.path.join(gamecloud_dir, "tmp", command, game)
 
     for match in glob.glob(tmp_save_dir+"*"):
         if os.path.isfile(match):
@@ -131,7 +132,7 @@ if len(sys.argv) == 3 and sys.argv[1] in commands and sys.argv[2] in games:
         upload(dbx, tmp_save_zip, cloud_save_zip)
 
     if command == "download":
-        old_local_save_dir = os.path.join(os.path.dirname(__file__), "tmp", "old", game)
+        old_local_save_dir = os.path.join(gamecloud_dir, "tmp", "old", game)
         os_replace_dir(old_local_save_dir)
         copy_saves(game_info["save_patterns"], game_info["local_save_dir"], old_local_save_dir)
 

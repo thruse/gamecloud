@@ -1,10 +1,9 @@
 @echo off
 
-set gamecloud_py=%~f0
-for %%i in ("%gamecloud_py%") set gamecloud_py=%%~dpi
-set gamecloud_py=%gamecloud_py:~0,-1%\..\gamecloud.py
-for %%i in ("%gamecloud_py%") set gamecloud_py=%%~fi
+for /f "usebackq tokens=*" %%i in (`dirname %~f0`) do set bin_dir=%%i
+for /f "usebackq tokens=*" %%i in (`dirname %bin_dir%`) do set gamecloud_dir=%%i
 
-call python %gamecloud_py% %*
+call python "%gamecloud_dir%\code\gamecloud.py" %*
 
 set gamecloud_py=
+set bin_dir=
