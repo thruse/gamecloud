@@ -1,4 +1,7 @@
 .vscode/
 .venv/
-tmp/
 .DS_Store
+download/
+upload/
+backup/
+old/

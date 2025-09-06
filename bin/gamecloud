@@ -1,6 +1,0 @@
-#!/usr/bin/env bash
-
-bin_dir="$(dirname "$0")"
-gamecloud_dir="$(dirname "$bin_dir")"
-
-python "$gamecloud_dir/code/gamecloud.py" "$@"

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import dropbox
 import os
@@ -6,6 +6,7 @@ import sys
 import shutil
 import glob
 import getpass
+import time
 
 """
 Defintions
@@ -98,24 +99,25 @@ GAMECLOUD_TOKEN = getpass.getpass("Enter gamecloud token: ")
 
 dbx = dropbox.Dropbox(app_key=GAMECLOUD_KEY, app_secret=GAMECLOUD_SECRET, oauth2_refresh_token=GAMECLOUD_TOKEN)
 
-cloud_saves_dir = "/saves"
-create_dir(dbx, cloud_saves_dir)
-
-gamecloud_dir = os.path.dirname(os.path.dirname(__file__))
+gamecloud_dir = os.path.dirname(__file__)
 manifests_dir = os.path.join(gamecloud_dir, "manifests")
 games = os.listdir(manifests_dir)
 
-commands = ["upload", "download"]
+commands = ["upload", "download", "backup"]
 
-if len(sys.argv) == 3 and sys.argv[1] in commands and sys.argv[2] in games:
+if len(sys.argv) > 2 and sys.argv[1] in commands and sys.argv[2] in games:
     command = sys.argv[1]
     game = sys.argv[2]
-    cloud_save_zip = '/'.join([cloud_saves_dir, game+".zip"])
+
+    cloud_saves_dir = "/backups" if command == "backup" else "/saves"
+    create_dir(dbx, cloud_saves_dir)
+    cloud_saves_name = time.strftime("%Y_%m_%d_%H_%M_%S")+"_"+input("Enter computer name: ")+"_"+game+".zip" if command == "backup" else game+".zip"
+    cloud_save_zip = '/'.join([cloud_saves_dir, cloud_saves_name])
 
     manifest = os.path.join(manifests_dir, game)
     game_info = get_game_info(manifest)
 
-    tmp_save_dir = os.path.join(gamecloud_dir, "tmp", command, game)
+    tmp_save_dir = os.path.join(gamecloud_dir, command, game)
 
     for match in glob.glob(tmp_save_dir+"*"):
         if os.path.isfile(match):
@@ -125,13 +127,12 @@ if len(sys.argv) == 3 and sys.argv[1] in commands and sys.argv[2] in games:
 
     tmp_save_zip = tmp_save_dir+".zip"
     
-    if command == "upload":
+    if command == "upload" or command == "backup":
         copy_saves(game_info["save_patterns"], game_info["local_save_dir"], tmp_save_dir)
 
         shutil.make_archive(tmp_save_dir, "zip", tmp_save_dir)
         upload(dbx, tmp_save_zip, cloud_save_zip)
-
-    if command == "download":
+    elif command == "download":
         old_local_save_dir = os.path.join(gamecloud_dir, "tmp", "old", game)
         os_replace_dir(old_local_save_dir)
         copy_saves(game_info["save_patterns"], game_info["local_save_dir"], old_local_save_dir)
@@ -140,6 +141,7 @@ if len(sys.argv) == 3 and sys.argv[1] in commands and sys.argv[2] in games:
         shutil.unpack_archive(tmp_save_zip, tmp_save_dir)
 
         copy_saves(game_info["save_patterns"], tmp_save_dir, game_info["local_save_dir"])
+        
 else:
     print("error: incorrect syntax", file=sys.stderr)
 
