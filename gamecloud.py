@@ -94,7 +94,7 @@ def copy_saves(save_patterns, src_save_dir, dst_save_dir):
         shutil.copyfile(os.path.join(src_save_dir, src_save_name), dst_save)
 
 def main():
-    gamecloud_dir = os.path.dirname(__file__)
+    gamecloud_dir = os.path.dirname(os.path.realpath(__file__))
     manifests_dir = os.path.join(gamecloud_dir, "manifests")
     games = os.listdir(manifests_dir)
 
